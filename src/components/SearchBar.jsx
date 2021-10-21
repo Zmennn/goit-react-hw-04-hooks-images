@@ -1,64 +1,51 @@
 
-import { Component } from "react";
+import { useState } from "react";
 import style from "./style.module.css";
 import { BiSearchAlt } from "react-icons/bi";
 import PropTypes from "prop-types";
 
 
- class SearchBar extends Component{
+export function SearchBar ({handleSubmit}){
 
-     state = {
-         text: "",
-         placeholder:"What to search?"
+    const [text, setText] = useState("");
+    const [placeholder, setPlaceholder]=useState("What to search?")
+
+    const handleInput = (event) => {        
+           setText(event.target.value)        
      }
-
-     handleInput = (event) => {
-         this.setState({
-           text:event.target.value
-         })
-     }
-
-     onSubmit=(event) => {
+    
+const onSubmit=(event) => {
                 event.preventDefault();
-                if (this.state.text.trim() !== "") { 
-                this.props.handleSubmit(this.state.text.trim());
-                // После сабмита сделаем текст поискового запроса плейсхолдером, мне кажеться это прикольно,
-                // будет видно что мы искали, и совсем не будет мешать новому поиску)
-                this.setState({ placeholder: this.state.text, text: "" })
+                if (text.trim() !== "") { 
+                handleSubmit(text.trim());
+                    setPlaceholder(text);
+                    setText("")
                 } else {
-                    this.setState({placeholder:"What to search?"})
-            }
+                    setPlaceholder("What to search?")
+                }
             }
 
-
-render(){
     return<>
         <div className={style.searchCont}>
-            <form onSubmit={this.onSubmit}>
+            <form onSubmit={onSubmit}>
                 
                 
                 <input
                 
                 className={style.input}
                 type="text"
-                value={this.state.text}
-                placeholder={this.state.placeholder}
-                onChange={this.handleInput }
+                value={text}
+                placeholder={placeholder}
+                onChange={handleInput }
                 />
-                <div className={style.iconCont}
-                    // type="button"
-                    onClick={this.onSubmit}
-                >
-                                   
+                <div className={style.iconCont}                  
+                    onClick={onSubmit}>                                   
                     <BiSearchAlt className={style.icon}/>
                 </div>
             </form>
         </div>
     </>
 };
-}
-
-export { SearchBar }
 
 SearchBar.propTypes = {
     searchRequest:PropTypes.func

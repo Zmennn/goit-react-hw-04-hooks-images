@@ -1,4 +1,4 @@
-import { Component } from "react";
+import { useState,useEffect } from "react";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import style from "./style.module.css";
@@ -7,130 +7,185 @@ import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
 import Loader from "react-loader-spinner";
 
 
-class ImageGallery extends Component{
 
-  state = {
-        dataArray: [],
-        page: 1,
-        status: "idle",
-        showModal: false,
-        modalUrl: "",
-        searchRequest:""
-    }
+export function ImageGallery (){
 
-  getSnapshotBeforeUpdate(prevProps, prevState) { return document.querySelector("body").clientHeight }
+  // state = {
+  //       dataArray: [],
+  //       page: 1,
+  //       status: "idle",
+  //       showModal: false,
+  //       modalUrl: "",
+  //       searchRequest:""
+  // }
+  
+  const [dataArray, setDataArray] = useState([]);
+  const [page, setPage] = useState(1);
+  const [status, setStatus] = useState("idle");
+  const [showModal, setShowModal] = useState(false);
+  const [modalUrl, setModalUrl] = useState("");
+  const [searchRequest, setSearchRequest] = useState("");
+  
+
+  // getSnapshotBeforeUpdate(prevProps, prevState) { return document.querySelector("body").clientHeight }
   // 
 
-   componentDidUpdate( a,prevState,pos) {
-        const { state } = this;
-
-     if (prevState.searchRequest !== state.searchRequest) {
-           this.setState({status:"pending"})
+  useEffect(() => {
+    setStatus("pending");
           
-       request(state.page, state.searchRequest)
-              .then((res) => {
-               if (res.data.hits.length < 1) {
-                 toast.warn("Check your request, no data received");
-                 this.setState({ status: "idle" });
-               }else{this.setState({
-                  dataArray: res.data.hits,
-                  status:"resolved"
-                    })};})
-               .catch(() => this.setState({ status: "reject" }))
+    request(page, searchRequest)
+      .then((res) => {
+        if (res.data.hits.length < 1) {
+          toast.warn("Check your request, no data received");
+          setStatus("idle");
+        }
+        else {
+          setDataArray(res.data.hits);
+          setStatus("resolved");
+        }
+      })
+      .catch(() => this.setStatus("reject"));
+  }, [searchRequest])
+  
+ 
+  useEffect(() => {
+     setStatus("pending")
            
-       } else if (prevState.page !== state.page) {
-           this.setState({status:"pending"})
-           
-           request(state.page, state.searchRequest)
+           request(page,searchRequest)
           .then((res) => {
            if (res.data.hits.length < 1) {
              toast.warn("These are all pictures for this request");
-             this.setState({status:"idle"})
+             setStatus("idle");
           } else {
-             this.setState((prevState) => ({
-             dataArray: [...prevState.dataArray, ...res.data.hits],
-             status:"resolved"
-                })); 
+             setDataArray((prevState) => 
+               [...prevState, ...res.data.hits]
+             );
+             setStatus("resolved");             
                     
-             window.scrollTo({
-                top: pos-35,
-                behavior: "smooth"
-                     });            
+            //  window.scrollTo({
+            //     top: pos-35,
+            //     behavior: "smooth"
+            //          });            
                 }})
              .catch((err) => {
-               this.setState({ status: "reject" });
+               setStatus("reject");
                console.log(err)
-             })      
-    }
-  } 
+             }) 
+  },[page])
 
-  toggleModal = () => {
-    this.setState((prev) => ({
-    showModal: !prev.showModal,
-    status:!prev.showModal?"idle":"resolved"
-       }))}
+
+
+  //  componentDidUpdate( a,prevState,pos) {
+  //       const { state } = this;
+
+  //    if (prevState.searchRequest !== state.searchRequest) {
+  //          this.setState({status:"pending"})
+          
+  //      request(state.page, state.searchRequest)
+  //             .then((res) => {
+  //              if (res.data.hits.length < 1) {
+  //                toast.warn("Check your request, no data received");
+  //                this.setState({ status: "idle" });
+  //              }else{this.setState({
+  //                 dataArray: res.data.hits,
+  //                 status:"resolved"
+  //                   })};})
+  //              .catch(() => this.setState({ status: "reject" }))
+           
+  //      } else if (prevState.page !== state.page) {
+  //          this.setState({status:"pending"})
+           
+  //          request(state.page, state.searchRequest)
+  //         .then((res) => {
+  //          if (res.data.hits.length < 1) {
+  //            toast.warn("These are all pictures for this request");
+  //            this.setState({status:"idle"})
+  //         } else {
+  //            this.setState((prevState) => ({
+  //            dataArray: [...prevState.dataArray, ...res.data.hits],
+  //            status:"resolved"
+  //               })); 
+                    
+  //            window.scrollTo({
+  //               top: pos-35,
+  //               behavior: "smooth"
+  //                    });            
+  //               }})
+  //            .catch((err) => {
+  //              this.setState({ status: "reject" });
+  //              console.log(err)
+  //            })      
+  //    } else if (prevState.showModal === true & state.showModal === false) {
+  //      window.scrollTo({
+  //               top: pos
+  //               // behavior: "smooth"
+  //                    }); 
+  //   }
+  // } 
+
+ const closeModal = () => {
+   setShowModal(false);
+   setStatus("resolved");
+       }
   
   
-  toggleModalData = (e) => {    
-      this.setState((prev) => ({
-      showModal: !prev.showModal,
-      modalUrl: this.gettingLink(prev,e),
-      status:!prev.showModal?"idle":"resolved"       
-        }))}
+  const openModalData = (e) => {    
+      
+    setShowModal(true);
+        
+    setModalUrl(gettingLink(e));
+      
+    setStatus("idle");       
+        }
   
-  gettingLink(prev,e) {
+  const gettingLink=(e)=>{
     const modalId=e.target.id;
-    const obj = prev.dataArray.find((el) => el.id.toString() === modalId)
+    const obj = dataArray.find((el) => el.id.toString() === modalId)
     if(obj){return obj.largeImageURL}   
        };
 
-  handleLoadMore = () => this.setState((prevState) => ({
-    page: prevState.page + 1
-      }));
+  const handleLoadMore = () => setPage(
+    (prevState) =>prevState + 1
+    );
   
-
-  handleSubmit = (text) => {
-    this.setState({ page: 1,searchRequest: text });
-       };
-
-
-
-
-  render() {
-    const { state, handleLoadMore, toggleModal, toggleModalData, handleSubmit } = this
+  const handleSubmit = (text) => {
+    setPage(1);
+    setSearchRequest(text)
+  };
+       
     
     return <>
-      {state.status === "reject" && toast.error("unknown error, check connection")}
+      {status === "reject" && toast.error("unknown error, check connection")}
 
-      {state.status === "pending" && (
+      {status === "pending" && (
         <div  className={style.spinContainer}>
             <Loader type="Circles" color="#00BFFF" height={120} width={120} />
         </div>)
            }
 
-      {state.showModal &&
+      {showModal &&
         <Modal
-          toggleModal={toggleModal}>
-          <img src={state.modalUrl} className={style.modalImg} alt="" />             
+          closeModal={closeModal}>
+          <img src={modalUrl} className={style.modalImg} alt="" />             
         </Modal>}
           
       <SearchBar handleSubmit={handleSubmit} />
 
-      {!state.showModal &&
+      {!showModal &&
         <ul className={style.gallery}>
             <ImageGalleryItem
-            dataArray={state.dataArray}
-            toggleModalData={toggleModalData}
+            dataArray={dataArray}
+            openModalData={openModalData}
               />
         </ul>}
          
-      {state.status === "resolved" &&
+      {status === "resolved" &&
         (<Button
           handleLoadMore={handleLoadMore} />)}
       
         </>
     }
-}
 
 
-export { ImageGallery }
+
+ 

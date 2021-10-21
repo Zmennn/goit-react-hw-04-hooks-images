@@ -1,13 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import style from "./style.module.css"
+import style from "./style.module.css";
 
 
-const modalRoot = document.querySelector("#modal-root");
-export function Modal ({toggleModal,children}) {
+
+
+export function Modal ({closeModal,children}) {
+
+    const modalRoot = useRef(document.querySelector("#modal-root"));
 
     const handleKeyDown = (e) => {
-        if (e.code === "Escape") { toggleModal() }
+        if (e.code === "Escape") { closeModal() }
     };
 
     
@@ -19,22 +22,23 @@ export function Modal ({toggleModal,children}) {
 
     const handleBackdropClick = (ev) => {
         if (ev.target === ev.currentTarget) {
-        toggleModal()
-    } }
+            closeModal()
+        }
+    };
     
     
-        return createPortal(
-            <div
-                className={style.overlay}
-                onClick={handleBackdropClick}
-            >
+    return createPortal(
+        <div
+            className={style.overlay}
+            onClick={handleBackdropClick}
+        >
             <div className={style.modalContainer}>
-            {children}
-                </div>
-                <button type="button" onClick={toggleModal} className={style.closeButton}>Close</button>
-            </div>,
-            modalRoot
-    )  
+                {children}
+            </div>
+            <button type="button" onClick={closeModal} className={style.closeButton}>Close</button>
+        </div>,
+        modalRoot.current
+    );
 }
 
 
