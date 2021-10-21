@@ -1,4 +1,4 @@
-// import { useEffect } from "react";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import style from "./style.module.css"
 
@@ -10,12 +10,11 @@ export function Modal ({toggleModal,children}) {
         if (e.code === "Escape") { toggleModal() }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    // useEffect(() => {
-    //     window.addEventListener('keydown', handleKeyDown)
-    // }, []);
-
-    // useEffect(() => { return () => { window.removeEventListener('keydown', handleKeyDown);console.log("object") } },[]);
+    
+    useEffect(() => {
+        window.addEventListener('keydown', handleKeyDown);
+        return  () =>  window.removeEventListener('keydown', handleKeyDown) 
+    });
 
 
     const handleBackdropClick = (ev) => {
