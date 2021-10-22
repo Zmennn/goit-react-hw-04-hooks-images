@@ -1,4 +1,4 @@
-import { useState,useEffect, useRef, useMemo } from "react";
+import { useState, useRef, useCallback } from "react";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import style from "./style.module.css";
@@ -10,23 +10,20 @@ import Loader from "react-loader-spinner";
 
 export function ImageGallery() {
 
- 
-  
   const [dataArray, setDataArray] = useState([]);
   const [status, setStatus] = useState("idle");
   const [showModal, setShowModal] = useState(false);
-  const [modalUrl, setModalUrl] = useState("");
-
   
   let hight = useRef(0);
   let lastRequest = useRef("");
   let currentPage = useRef(1);
- 
- const hight1=() => { hight.current = document.querySelector("body").clientHeight }; 
+  let modalUrl = useRef("");
 
-  const handleSubmit=(text) => {
+  const hightCalc=() => { hight.current = document.querySelector("body").clientHeight }; 
+
+  const handleSubmit=useCallback((text) => {
     if (lastRequest === "") { return }
-
+    hightCalc()
     currentPage.current=1;
     lastRequest.current = text;
     setStatus("pending");
@@ -43,13 +40,13 @@ export function ImageGallery() {
         }
       })
       .catch(() => this.setStatus("reject"));
-  };
+  },[]);
   
  
 
-  const handleLoadMore=() => {
+  const handleLoadMore=useCallback(() => {
     if (lastRequest === "") { return }
-
+    hightCalc()
     setStatus("pending")
      currentPage.current=currentPage.current+1      
     request(currentPage.current, lastRequest.current)
@@ -62,7 +59,7 @@ export function ImageGallery() {
             [...prevState, ...res.data.hits]
           );
           setStatus("resolved");
-                console.log(hight.current);    
+                    
           window.scrollTo({
             top: hight.current - 35,
             behavior: "smooth"
@@ -73,20 +70,16 @@ export function ImageGallery() {
         setStatus("reject");
         console.log(err)
       })
-  };
+  },[]);
 
-
-
-
-  const closeModal = () => {
+  const closeModal = () => {  
     setShowModal(false);
     setStatus("resolved");
   };
   
-  
-  const openModalData = (e) => {
+  const openModalData = (e) => { 
     setShowModal(true);
-    setModalUrl(gettingLink(e));
+    modalUrl.current = gettingLink(e);
     setStatus("idle");
   };
   
@@ -110,7 +103,7 @@ export function ImageGallery() {
     {showModal &&
       <Modal
         closeModal={closeModal}>
-        <img src={modalUrl} className={style.modalImg} alt="" />
+        <img src={modalUrl.current} className={style.modalImg} alt="" />
       </Modal>}
           
     <SearchBar handleSubmit={handleSubmit} />
@@ -125,7 +118,7 @@ export function ImageGallery() {
       {status === "resolved" &&
         (<Button
         handleLoadMore={handleLoadMore} />)}
-    {hight1()}
+    
         </>
     }
 
